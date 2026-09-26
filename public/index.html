@@ -1,1 +1,1141 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CPSE Harmonizer — One Nation, One Material Code</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+  :root {
+    --bg-deep:      #0A121C;
+    --bg-panel:     #101B29;
+    --bg-panel-2:   #0D1622;
+    --line:         #22364A;
+    --line-soft:    #1A2A3B;
+    --text-hi:      #DCE4EC;
+    --text-mid:     #93A6BA;
+    --text-low:     #5E7488;
+    --amber:        #D98E3F;
+    --amber-dim:    #8A5D2C;
+    --teal:         #4FB3A6;
+    --teal-dim:     #2E6B62;
+    --rust:         #C1503D;
+    --rust-dim:     #7A3226;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-hi);
+  }
+
+  .font-mono-data { font-family: 'IBM Plex Mono', monospace; }
+
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+  body.theme-light {
+    --bg-deep:      #EEF1F4;
+    --bg-panel:     #FFFFFF;
+    --bg-panel-2:   #F4F6F8;
+    --line:         #D3DAE1;
+    --line-soft:    #E1E7EC;
+    --text-hi:      #182430;
+    --text-mid:     #4C5D6E;
+    --text-low:     #7C8DA0;
+  }
+
+  .plate-corners {
+    position: relative;
+  }
+  .plate-corners::before,
+  .plate-corners::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid var(--amber);
+    opacity: 0.75;
+  }
+  .plate-corners::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .plate-corners::after  { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+
+  .scanline {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--teal), transparent);
+    animation: scan 2.6s linear infinite;
+    box-shadow: 0 0 8px 1px var(--teal);
+  }
+  @keyframes scan {
+    0%   { top: 4%; opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { top: 94%; opacity: 0; }
+  }
+
+  .pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 0 rgba(79,179,166,0.7);
+    animation: pulse-ring 2s infinite;
+  }
+  @keyframes pulse-ring {
+    0%   { box-shadow: 0 0 0 0 rgba(79,179,166,0.55); }
+    70%  { box-shadow: 0 0 0 7px rgba(79,179,166,0); }
+    100% { box-shadow: 0 0 0 0 rgba(79,179,166,0); }
+  }
+
+  .glow-marker {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--amber);
+    box-shadow: 0 0 0 4px rgba(217,142,63,0.25), 0 0 14px 2px rgba(217,142,63,0.8);
+    border: 2px solid #FBEAD6;
+    cursor: pointer;
+  }
+
+  .nav-item {
+    border-left: 2px solid transparent;
+    transition: border-color .15s ease, background-color .15s ease, color .15s ease;
+  }
+  .nav-item.active {
+    border-left-color: var(--amber);
+    background: var(--bg-panel-2);
+    color: var(--text-hi);
+  }
+  .nav-item:not(.disabled):hover {
+    background: var(--bg-panel-2);
+  }
+  .nav-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  input[type="text"], input[type="password"], select {
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    color: var(--text-hi);
+  }
+  input:focus, select:focus, button:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 1px;
+  }
+
+  .maplibregl-popup-content {
+    background: var(--bg-panel) !important;
+    color: var(--text-hi) !important;
+    border: 1px solid var(--line) !important;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .maplibregl-popup-tip { border-top-color: var(--bg-panel) !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scanline, .pulse-dot { animation: none; }
+  }
+
+  .dropzone {
+    border: 1.5px dashed var(--line);
+    background: var(--bg-panel-2);
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+  .dropzone.drag-active {
+    border-color: var(--teal);
+    background: rgba(79,179,166,0.08);
+  }
+
+  .confidence-track {
+    height: 5px;
+    border-radius: 3px;
+    background: var(--line-soft);
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+</style>
+</head>
+
+<body class="theme-dark min-h-screen">
+
+<div id="app" class="min-h-screen"></div>
+
+<script>
+// ============================================================================
+// CPSE Material Harmonizer — Frontend State + Renderer
+// ============================================================================
+
+let state = {
+  isAuthenticated: false,
+  currentUser: null,
+  activeTab: 'profile',
+  theme: 'dark',
+  lastScannedBarcode: 'CPSE-IND-88421',
+  systemStatus: 'Online - Secure Offline/Online Sync Active',
+  materials: []
+};
+
+let loginError = '';
+let overrideConfirmStep = 0;
+
+const MODULES = [
+  { id: 'profile',      label: 'User Profile',        roles: 'all' },
+  { id: 'new_entry',    label: 'Add New Entry',       roles: 'all' },
+  { id: 'all_entries',  label: 'National Inventory',  roles: 'all' },
+  { id: 'bulk_ingest',  label: 'Bulk Data Ingestion',  roles: 'all' },
+  { id: 'review_queue', label: 'AI Pooling Review',    roles: ['Branch Officer', 'National Admin'] },
+  { id: 'map_view',     label: 'Grid Node Map',       roles: 'all' },
+  { id: 'about',        label: 'About & Compliance',  roles: 'all' },
+  { id: 'restrictions', label: 'Purchase Restrictions', roles: ['Branch Officer', 'National Admin'] },
+  { id: 'override',     label: 'Global Edit & Override', roles: ['National Admin'] },
+];
+
+// Local UI-only state for the AI pooling modules (not part of server sessionState)
+let stagingQueue = [];
+let uploadPreviewRows = [];
+let uploadFileName = '';
+let uploadMessage = '';
+let uploadMessageTone = 'info'; // 'info' | 'error' | 'success'
+
+function canAccess(mod) {
+  if (mod.roles === 'all') return true;
+  if (!state.currentUser) return false;
+  return mod.roles.includes(state.currentUser.role);
+}
+
+// ----------------------------------------------------------------------------
+// API helpers
+// ----------------------------------------------------------------------------
+
+async function apiPost(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {})
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function fetchState() {
+  const res = await fetch('/api/state');
+  const data = await res.json();
+  state = { ...state, ...data };
+  render();
+  if (state.isAuthenticated && state.activeTab === 'review_queue') {
+    await fetchStagingQueue();
+    render();
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Actions
+// ----------------------------------------------------------------------------
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const userid = document.getElementById('login-userid').value.trim();
+  const password = document.getElementById('login-password').value;
+  const { ok, data } = await apiPost('/api/login', { userid, password });
+  if (ok && data.success) {
+    loginError = '';
+    await fetchState();
+  } else {
+    loginError = data.message || 'Invalid credentials.';
+    render();
+  }
+}
+
+async function handleLogout() {
+  await apiPost('/api/logout');
+  loginError = '';
+  await fetchState();
+}
+
+async function setTab(tabId) {
+  const mod = MODULES.find(m => m.id === tabId);
+  if (mod && !canAccess(mod)) return;
+  const { ok, data } = await apiPost('/api/tab', { tab: tabId });
+  if (ok && data.success) {
+    state.activeTab = tabId;
+    render();
+    if (tabId === 'review_queue') {
+      await fetchStagingQueue();
+      render();
+    }
+  } else if (data && data.message) {
+    alert(data.message);
+  }
+}
+
+async function toggleTheme() {
+  const { data } = await apiPost('/api/theme');
+  if (data && data.theme) {
+    state.theme = data.theme;
+    render();
+  }
+}
+
+async function handleNewEntry(e) {
+  e.preventDefault();
+  const description = document.getElementById('entry-description').value.trim();
+  const category = document.getElementById('entry-category').value;
+  const location = document.getElementById('entry-location').value.trim();
+  if (!description || !category || !location) return;
+
+  const { ok, data } = await apiPost('/api/materials', { description, category, location, isScan: false });
+  if (ok && data.success) {
+    state.materials = data.materials;
+    document.getElementById('entry-description').value = '';
+    document.getElementById('entry-location').value = '';
+    render();
+  }
+}
+
+async function handleScanCapture() {
+  const { ok, data } = await apiPost('/api/materials', {
+    description: 'Barcode-Scanned Asset — Pending Classification',
+    category: 'Mechanical',
+    location: 'Unassigned Node',
+    isScan: true
+  });
+  if (ok && data.success) {
+    state.materials = data.materials;
+    state.lastScannedBarcode = data.code;
+    render();
+  }
+}
+
+// ----------------------------------------------------------------------------
+// AI Semantic Pooling — client-side actions
+// ----------------------------------------------------------------------------
+
+let selectedUploadFile = null;
+
+function handleFileChosen(file) {
+  if (!file) return;
+  selectedUploadFile = file;
+  uploadFileName = file.name;
+  uploadMessage = '';
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const workbook = XLSX.read(e.target.result, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
+      uploadPreviewRows = rows.filter(r => r.length > 0);
+      if (uploadPreviewRows.length < 2) {
+        uploadMessage = 'File parsed but no data rows were found.';
+        uploadMessageTone = 'error';
+      }
+    } catch (err) {
+      uploadPreviewRows = [];
+      uploadMessage = 'Could not read this file. Ensure it is a valid .csv or .xlsx export.';
+      uploadMessageTone = 'error';
+    }
+    render();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function handleRunMatching() {
+  if (!selectedUploadFile) return;
+  uploadMessage = 'Running description-driven semantic matching…';
+  uploadMessageTone = 'info';
+  render();
+
+  const formData = new FormData();
+  formData.append('file', selectedUploadFile);
+
+  try {
+    const res = await fetch('/api/upload-staging', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      uploadMessage = data.message || `${data.staged} row(s) staged for review.`;
+      uploadMessageTone = 'success';
+      uploadPreviewRows = [];
+      uploadFileName = '';
+      selectedUploadFile = null;
+      await setTab('review_queue');
+    } else {
+      uploadMessage = data.message || 'Upload failed.';
+      uploadMessageTone = 'error';
+      render();
+    }
+  } catch (err) {
+    uploadMessage = 'Network error while uploading the file.';
+    uploadMessageTone = 'error';
+    render();
+  }
+}
+
+function handleClearUpload() {
+  selectedUploadFile = null;
+  uploadFileName = '';
+  uploadPreviewRows = [];
+  uploadMessage = '';
+  render();
+}
+
+async function fetchStagingQueue() {
+  try {
+    const res = await fetch('/api/staging-queue');
+    const data = await res.json();
+    if (data.success) {
+      stagingQueue = data.queue || [];
+    }
+  } catch (err) {
+    console.error('Failed to load staging queue', err);
+  }
+}
+
+async function handleApproveMatch(stagingId) {
+  const { ok, data } = await apiPost('/api/approve-match', { staging_id: stagingId });
+  if (ok && data.success) {
+    await fetchStagingQueue();
+    render();
+  } else if (data && data.message) {
+    alert(data.message);
+  }
+}
+
+async function handleApproveAllHighConfidence() {
+  const ids = stagingQueue.filter(i => i.status.startsWith('Pooled')).map(i => i.id);
+  if (ids.length === 0) return;
+  const { ok, data } = await apiPost('/api/approve-match', { staging_ids: ids });
+  if (ok && data.success) {
+    await fetchStagingQueue();
+    render();
+  } else if (data && data.message) {
+    alert(data.message);
+  }
+}
+
+async function handleOverrideMatch(stagingId) {
+  const input = document.querySelector(`[data-desc-input="${stagingId}"]`);
+  const description = input ? input.value.trim() : undefined;
+  const { ok, data } = await apiPost('/api/reject-match', { staging_id: stagingId, description });
+  if (ok && data.success) {
+    await fetchStagingQueue();
+    render();
+  } else if (data && data.message) {
+    alert(data.message);
+  }
+}
+
+async function handleOverride() {
+  if (overrideConfirmStep === 0) {
+    overrideConfirmStep = 1;
+    render();
+    return;
+  }
+  const { ok, data } = await apiPost('/api/override');
+  overrideConfirmStep = 0;
+  if (ok && data.success) {
+    await fetchState();
+    alert(data.message);
+  } else if (data && data.message) {
+    alert(data.message);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Render: root
+// ----------------------------------------------------------------------------
+
+function render() {
+  document.body.className = state.theme === 'light' ? 'theme-light min-h-screen' : 'theme-dark min-h-screen';
+  const root = document.getElementById('app');
+  root.innerHTML = state.isAuthenticated ? renderShell() : renderLogin();
+  attachHandlers();
+}
+
+// ----------------------------------------------------------------------------
+// Render: login screen
+// ----------------------------------------------------------------------------
+
+function renderLogin() {
+  return `
+    <div class="min-h-screen flex items-center justify-center px-4" style="background: var(--bg-deep);">
+      <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+          <div class="inline-flex items-center gap-2 mb-2">
+            <span class="pulse-dot"></span>
+            <span class="text-xs font-mono-data tracking-wide" style="color: var(--text-mid);">GRID CONTROLLER ACCESS</span>
+          </div>
+          <h1 class="text-3xl font-semibold" style="color: var(--text-hi);">CPSE Material Harmonizer</h1>
+          <p class="text-sm mt-1" style="color: var(--text-mid);">One Nation — One Material Code</p>
+        </div>
+
+        <div class="plate-corners rounded p-6" style="background: var(--bg-panel); border: 1px solid var(--line);">
+          <form id="login-form" class="space-y-4">
+            <div>
+              <label class="block text-sm mb-1" style="color: var(--text-mid);">User ID</label>
+              <input id="login-userid" type="text" autocomplete="username"
+                class="w-full rounded px-3 py-2 font-mono-data" placeholder="e.g. EMP001" />
+            </div>
+            <div>
+              <label class="block text-sm mb-1" style="color: var(--text-mid);">Password</label>
+              <input id="login-password" type="password" autocomplete="current-password"
+                class="w-full rounded px-3 py-2 font-mono-data" placeholder="••••••••" />
+            </div>
+
+            ${loginError ? `<div class="text-sm rounded px-3 py-2" style="background: rgba(193,80,61,0.12); border: 1px solid var(--rust-dim); color: #E8A79A;">${escapeHtml(loginError)}</div>` : ''}
+
+            <button type="submit"
+              class="w-full rounded py-2.5 font-medium transition-opacity hover:opacity-90"
+              style="background: var(--amber); color: #1C1206;">
+              Authenticate
+            </button>
+          </form>
+        </div>
+
+        <div class="mt-4 rounded p-4 text-xs font-mono-data" style="background: var(--bg-panel-2); border: 1px solid var(--line-soft); color: var(--text-mid);">
+          <div class="mb-2" style="color: var(--text-hi);">Demo Credentials — Reference Only</div>
+          <div class="flex justify-between py-0.5"><span>Storekeeper</span><span>EMP001 / emp123</span></div>
+          <div class="flex justify-between py-0.5"><span>Branch Officer</span><span>OFF101 / off123</span></div>
+          <div class="flex justify-between py-0.5"><span>National Admin</span><span>ADM999 / adm123</span></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ----------------------------------------------------------------------------
+// Render: authenticated shell
+// ----------------------------------------------------------------------------
+
+function renderShell() {
+  const activeMod = MODULES.find(m => m.id === state.activeTab) || MODULES[0];
+  return `
+    <div class="flex min-h-screen">
+      ${renderSidebar()}
+      <div class="flex-1 flex flex-col min-w-0">
+        ${renderTopBar(activeMod)}
+        <main class="flex-1 p-6 overflow-y-auto">
+          ${renderModule(state.activeTab)}
+        </main>
+      </div>
+    </div>
+  `;
+}
+
+function renderSidebar() {
+  const u = state.currentUser;
+  return `
+    <aside class="w-64 flex-shrink-0 flex flex-col" style="background: var(--bg-panel); border-right: 1px solid var(--line);">
+      <div class="p-5" style="border-bottom: 1px solid var(--line-soft);">
+        <div class="text-xs font-mono-data tracking-wide" style="color: var(--amber);">CPSE HARMONIZER</div>
+        <div class="text-xs mt-1" style="color: var(--text-low);">Material Master-Data Registry</div>
+      </div>
+
+      <div class="p-4" style="border-bottom: 1px solid var(--line-soft);">
+        <div class="rounded p-3" style="background: var(--bg-panel-2); border: 1px solid var(--line-soft);">
+          <div class="text-sm font-medium" style="color: var(--text-hi);">${escapeHtml(u ? u.name : '')}</div>
+          <div class="text-xs mt-0.5" style="color: var(--text-mid);">${escapeHtml(u ? u.role : '')}</div>
+        </div>
+      </div>
+
+      <nav class="flex-1 py-2">
+        ${MODULES.map(m => {
+          const active = m.id === state.activeTab;
+          const allowed = canAccess(m);
+          return `
+            <button data-nav="${m.id}"
+              class="nav-item w-full text-left px-5 py-2.5 text-sm ${active ? 'active' : ''} ${allowed ? '' : 'disabled'}"
+              style="color: ${active ? 'var(--text-hi)' : 'var(--text-mid)'};"
+              ${allowed ? '' : 'disabled'}>
+              ${escapeHtml(m.label)}
+              ${allowed ? '' : '<span class="float-right text-xs font-mono-data" style="color: var(--text-low);">locked</span>'}
+            </button>
+          `;
+        }).join('')}
+      </nav>
+
+      <div class="p-4 space-y-2" style="border-top: 1px solid var(--line-soft);">
+        <button id="theme-toggle-btn" class="w-full text-sm rounded px-3 py-2 text-left"
+          style="background: var(--bg-panel-2); border: 1px solid var(--line-soft); color: var(--text-mid);">
+          Switch to ${state.theme === 'dark' ? 'light' : 'dark'} theme
+        </button>
+        <button id="logout-btn" class="w-full text-sm rounded px-3 py-2 text-left"
+          style="background: rgba(193,80,61,0.1); border: 1px solid var(--rust-dim); color: #E8A79A;">
+          Log out
+        </button>
+      </div>
+    </aside>
+  `;
+}
+
+function renderTopBar(activeMod) {
+  return `
+    <div class="flex items-center justify-between px-6 py-4" style="border-bottom: 1px solid var(--line); background: var(--bg-panel);">
+      <h2 class="text-lg font-medium" style="color: var(--text-hi);">${escapeHtml(activeMod.label)}</h2>
+      <div class="flex items-center gap-2 text-xs font-mono-data" style="color: var(--text-mid);">
+        <span class="pulse-dot"></span>
+        ${escapeHtml(state.systemStatus)}
+      </div>
+    </div>
+  `;
+}
+
+// ----------------------------------------------------------------------------
+// Render: modules
+// ----------------------------------------------------------------------------
+
+function renderModule(tab) {
+  switch (tab) {
+    case 'profile':      return renderProfile();
+    case 'new_entry':     return renderNewEntry();
+    case 'all_entries':   return renderAllEntries();
+    case 'bulk_ingest':   return renderBulkIngest();
+    case 'review_queue':  return renderReviewQueue();
+    case 'map_view':      return renderMapView();
+    case 'about':         return renderAbout();
+    case 'restrictions':  return renderRestrictions();
+    case 'override':      return renderOverride();
+    default:               return '';
+  }
+}
+
+function renderProfile() {
+  const u = state.currentUser || {};
+  return `
+    <div class="max-w-2xl">
+      <div class="plate-corners rounded p-6" style="background: var(--bg-panel); border: 1px solid var(--line);">
+        <div class="grid grid-cols-2 gap-6">
+          <div>
+            <div class="text-xs font-mono-data mb-1" style="color: var(--text-low);">FULL NAME</div>
+            <div class="text-base" style="color: var(--text-hi);">${escapeHtml(u.name || '—')}</div>
+          </div>
+          <div>
+            <div class="text-xs font-mono-data mb-1" style="color: var(--text-low);">USER ID</div>
+            <div class="text-base font-mono-data" style="color: var(--text-hi);">${escapeHtml(u.userid || '—')}</div>
+          </div>
+          <div>
+            <div class="text-xs font-mono-data mb-1" style="color: var(--text-low);">ASSIGNED ROLE</div>
+            <span class="inline-block mt-1 text-xs px-2.5 py-1 rounded-full" style="background: rgba(79,179,166,0.15); color: var(--teal); border: 1px solid var(--teal-dim);">
+              ${escapeHtml(u.role || '—')}
+            </span>
+          </div>
+          <div>
+            <div class="text-xs font-mono-data mb-1" style="color: var(--text-low);">CPSE ENTITY NODE</div>
+            <div class="text-base" style="color: var(--text-hi);">${escapeHtml(u.entity || '—')}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 rounded p-4 text-sm" style="background: var(--bg-panel-2); border: 1px solid var(--line-soft); color: var(--text-mid);">
+        Last device barcode read: <span class="font-mono-data" style="color: var(--amber);">${escapeHtml(state.lastScannedBarcode)}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderNewEntry() {
+  return `
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="rounded p-6" style="background: var(--bg-panel); border: 1px solid var(--line);">
+        <div class="text-sm font-medium mb-4" style="color: var(--text-hi);">Manual Entry</div>
+        <form id="new-entry-form" class="space-y-4">
+          <div>
+            <label class="block text-sm mb-1" style="color: var(--text-mid);">Material Description</label>
+            <input id="entry-description" type="text" class="w-full rounded px-3 py-2" placeholder="e.g. Hydraulic Coupling, 25mm bore" />
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color: var(--text-mid);">Category</label>
+            <select id="entry-category" class="w-full rounded px-3 py-2">
+              <option value="">Select category</option>
+              <option>Mechanical</option>
+              <option>Electrical</option>
+              <option>Chemical & Raw Materials</option>
+              <option>Safety & PPE</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm mb-1" style="color: var(--text-mid);">Asset Location</label>
+            <input id="entry-location" type="text" class="w-full rounded px-3 py-2" placeholder="e.g. Ranchi Warehouse, Jharkhand" />
+          </div>
+          <button type="submit" class="rounded px-4 py-2 font-medium" style="background: var(--amber); color: #1C1206;">
+            Log Material
+          </button>
+        </form>
+      </div>
+
+      <div class="rounded p-6 relative overflow-hidden" style="background: var(--bg-panel-2); border: 1px solid var(--line);">
+        <div class="text-sm font-medium mb-4" style="color: var(--text-hi);">OpenCV Barcode Scanner</div>
+        <div class="relative rounded overflow-hidden" style="background: #030608; height: 220px; border: 1px solid var(--line-soft);">
+          <div class="scanline"></div>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="text-xs font-mono-data animate-pulse" style="color: var(--teal);">
+              [CAMERA ACTIVE: CAPTURING BARCODE STREAM]
+            </span>
+          </div>
+        </div>
+        <button id="scan-capture-btn" class="mt-4 rounded px-4 py-2 font-medium" style="background: var(--teal); color: #06201C;">
+          Capture Scanned Code
+        </button>
+        <div class="mt-3 text-xs font-mono-data" style="color: var(--text-low);">
+          Last capture: <span style="color: var(--text-mid);">${escapeHtml(state.lastScannedBarcode)}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderAllEntries() {
+  const rows = state.materials || [];
+  return `
+    <div class="rounded overflow-hidden" style="border: 1px solid var(--line);">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr style="background: var(--bg-panel-2); color: var(--text-low);">
+              <th class="text-left font-mono-data font-normal px-4 py-3">Material Code</th>
+              <th class="text-left font-normal px-4 py-3">Description</th>
+              <th class="text-left font-normal px-4 py-3">Category</th>
+              <th class="text-left font-normal px-4 py-3">Location</th>
+              <th class="text-left font-normal px-4 py-3">Status</th>
+              <th class="text-left font-normal px-4 py-3">Added By</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.length === 0 ? `
+              <tr><td colspan="6" class="px-4 py-8 text-center" style="color: var(--text-low);">
+                No inventory records yet — log an entry to begin the national ledger.
+              </td></tr>
+            ` : rows.map(r => `
+              <tr style="border-top: 1px solid var(--line-soft); background: var(--bg-panel);">
+                <td class="px-4 py-3 font-mono-data" style="color: var(--teal);">${escapeHtml(r.code)}</td>
+                <td class="px-4 py-3" style="color: var(--text-hi);">${escapeHtml(r.description)}</td>
+                <td class="px-4 py-3" style="color: var(--text-mid);">${escapeHtml(r.category)}</td>
+                <td class="px-4 py-3" style="color: var(--text-mid);">${escapeHtml(r.location)}</td>
+                <td class="px-4 py-3">
+                  <span class="text-xs px-2 py-1 rounded-full" style="background: rgba(79,179,166,0.15); color: var(--teal); border: 1px solid var(--teal-dim);">
+                    ${escapeHtml(r.status)}
+                  </span>
+                </td>
+                <td class="px-4 py-3 font-mono-data" style="color: var(--text-mid);">${escapeHtml(r.added_by)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ----------------------------------------------------------------------------
+// Module A: Bulk Messy Data Ingestion
+// ----------------------------------------------------------------------------
+
+function renderBulkIngest() {
+  return `
+    <div class="max-w-4xl space-y-4">
+      <div class="rounded p-6" style="background: var(--bg-panel); border: 1px solid var(--line);">
+        <div class="text-sm font-medium mb-1" style="color: var(--text-hi);">Raw Warehouse Inventory Upload</div>
+        <p class="text-xs mb-4" style="color: var(--text-low);">
+          Accepts .csv or .xlsx exports from any warehouse system. Column headers just need to contain
+          "description", "category", and "location" somewhere — exact wording and order don't matter.
+        </p>
+
+        <div id="dropzone" class="dropzone rounded p-8 text-center cursor-pointer">
+          <div class="text-sm" style="color: var(--text-mid);">
+            Drag and drop a .csv or .xlsx file here, or click to browse
+          </div>
+          <div class="text-xs font-mono-data mt-2" style="color: var(--text-low);">
+            ${uploadFileName ? `Selected: ${escapeHtml(uploadFileName)}` : 'No file selected'}
+          </div>
+          <input id="file-input" type="file" accept=".csv,.xlsx,.xls" class="hidden" />
+        </div>
+
+        ${uploadMessage ? `
+          <div class="mt-3 text-sm rounded px-3 py-2" style="
+            background: ${uploadMessageTone === 'error' ? 'rgba(193,80,61,0.12)' : uploadMessageTone === 'success' ? 'rgba(79,179,166,0.12)' : 'var(--bg-panel-2)'};
+            border: 1px solid ${uploadMessageTone === 'error' ? 'var(--rust-dim)' : uploadMessageTone === 'success' ? 'var(--teal-dim)' : 'var(--line-soft)'};
+            color: ${uploadMessageTone === 'error' ? '#E8A79A' : uploadMessageTone === 'success' ? 'var(--teal)' : 'var(--text-mid)'};">
+            ${escapeHtml(uploadMessage)}
+          </div>
+        ` : ''}
+
+        <div class="flex gap-3 mt-4">
+          <button id="run-matching-btn" ${uploadPreviewRows.length === 0 ? 'disabled' : ''}
+            class="rounded px-4 py-2 font-medium" style="background: var(--amber); color: #1C1206; opacity: ${uploadPreviewRows.length === 0 ? '0.5' : '1'};">
+            Run AI Semantic Matching
+          </button>
+          ${uploadPreviewRows.length > 0 ? `
+            <button id="clear-upload-btn" class="rounded px-4 py-2 font-medium" style="background: var(--bg-panel-2); border: 1px solid var(--line-soft); color: var(--text-mid);">
+              Clear
+            </button>
+          ` : ''}
+        </div>
+      </div>
+
+      ${uploadPreviewRows.length > 0 ? `
+        <div class="rounded overflow-hidden" style="border: 1px solid var(--line);">
+          <div class="px-4 py-3 text-sm font-medium" style="background: var(--bg-panel-2); color: var(--text-hi); border-bottom: 1px solid var(--line-soft);">
+            Live Preview — Unstandardized Rows (${uploadPreviewRows.length - 1} of ${uploadPreviewRows.length - 1} shown)
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead>
+                <tr style="background: var(--bg-panel-2); color: var(--text-low);">
+                  ${uploadPreviewRows[0].map(h => `<th class="text-left font-normal px-4 py-2">${escapeHtml(String(h || ''))}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+                ${uploadPreviewRows.slice(1, 9).map(r => `
+                  <tr style="border-top: 1px solid var(--line-soft); background: var(--bg-panel);">
+                    ${r.map(cell => `<td class="px-4 py-2 font-mono-data" style="color: var(--text-mid);">${escapeHtml(String(cell === undefined ? '' : cell))}</td>`).join('')}
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// ----------------------------------------------------------------------------
+// Module B: AI Semantic Pooling & Review Queue
+// ----------------------------------------------------------------------------
+
+function confidenceColor(pct) {
+  if (pct >= 80) return 'var(--teal)';
+  if (pct >= 50) return 'var(--amber)';
+  return 'var(--rust)';
+}
+
+function statusPillStyle(status) {
+  if (status.startsWith('Pooled')) return { bg: 'rgba(79,179,166,0.15)', border: 'var(--teal-dim)', color: 'var(--teal)' };
+  if (status.startsWith('Pending')) return { bg: 'rgba(217,142,63,0.15)', border: 'var(--amber-dim)', color: 'var(--amber)' };
+  return { bg: 'rgba(193,80,61,0.12)', border: 'var(--rust-dim)', color: '#E8A79A' };
+}
+
+function renderReviewQueue() {
+  const highConfidenceCount = stagingQueue.filter(i => i.status.startsWith('Pooled')).length;
+
+  return `
+    <div class="space-y-4">
+      <div class="flex items-center justify-between rounded p-4" style="background: var(--bg-panel); border: 1px solid var(--line);">
+        <div class="text-sm" style="color: var(--text-mid);">
+          <span class="font-mono-data" style="color: var(--text-hi);">${stagingQueue.length}</span> item(s) awaiting review
+          — <span class="font-mono-data" style="color: var(--teal);">${highConfidenceCount}</span> high-confidence pool suggestion(s)
+        </div>
+        <button id="approve-all-btn" ${highConfidenceCount === 0 ? 'disabled' : ''}
+          class="rounded px-4 py-2 text-sm font-medium" style="background: var(--teal); color: #06201C; opacity: ${highConfidenceCount === 0 ? '0.5' : '1'};">
+          Approve All High-Confidence Pools
+        </button>
+      </div>
+
+      ${stagingQueue.length === 0 ? `
+        <div class="rounded p-8 text-center text-sm" style="background: var(--bg-panel); border: 1px solid var(--line); color: var(--text-low);">
+          Nothing to review. Upload a file from Bulk Data Ingestion to populate the queue.
+        </div>
+      ` : stagingQueue.map(item => renderQueueRow(item)).join('')}
+    </div>
+  `;
+}
+
+function renderQueueRow(item) {
+  const pill = statusPillStyle(item.status);
+  const pct = Math.round(item.confidence_score || 0);
+  const isPooled = item.status.startsWith('Pooled');
+  const isNew = item.status.startsWith('New Unique');
+
+  return `
+    <div class="rounded p-4 grid grid-cols-1 lg:grid-cols-3 gap-4" style="background: var(--bg-panel); border: 1px solid var(--line);">
+      <div>
+        <div class="text-xs font-mono-data mb-1" style="color: var(--text-low);">RAW DESCRIPTION</div>
+        <div class="text-sm" style="color: var(--text-hi);">${escapeHtml(item.raw_description)}</div>
+        <div class="text-xs mt-1" style="color: var(--text-low);">${escapeHtml(item.raw_category || '—')} · ${escapeHtml(item.raw_location || '—')}</div>
+      </div>
+
+      <div>
+        <span class="inline-block text-xs px-2.5 py-1 rounded-full mb-2" style="background: ${pill.bg}; border: 1px solid ${pill.border}; color: ${pill.color};">
+          ${escapeHtml(item.status)}
+        </span>
+        <div class="text-xs font-mono-data mb-1" style="color: var(--text-mid);">Confidence: ${pct}%${item.matched_code ? ` — pooled with ${escapeHtml(item.matched_code)}` : ''}</div>
+        <div class="confidence-track">
+          <div class="confidence-fill" style="width: ${pct}%; background: ${confidenceColor(pct)};"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="text-xs font-mono-data mb-1" style="color: var(--text-low);">SUGGESTED MASTER CODE</div>
+        <div class="text-sm font-mono-data mb-2" style="color: var(--teal);">${item.matched_code ? escapeHtml(item.matched_code) : 'New code on approval'}</div>
+        <input type="text" data-desc-input="${item.id}" value="${escapeHtml(item.suggested_description || item.raw_description)}"
+          class="w-full rounded px-2 py-1.5 text-sm mb-2" />
+        <div class="flex flex-wrap gap-2">
+          ${!isNew ? `
+            <button data-approve="${item.id}" class="rounded px-3 py-1.5 text-xs font-medium" style="background: var(--teal); color: #06201C;">
+              Approve Pooled Match
+            </button>
+          ` : `
+            <button data-approve="${item.id}" class="rounded px-3 py-1.5 text-xs font-medium" style="background: var(--teal); color: #06201C;">
+              Approve New Master Code
+            </button>
+          `}
+          <button data-override="${item.id}" class="rounded px-3 py-1.5 text-xs font-medium" style="background: var(--bg-panel-2); border: 1px solid var(--line-soft); color: var(--text-mid);">
+            Override / Create New Code
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderMapView() {
+  return `
+    <div class="rounded overflow-hidden" style="border: 1px solid var(--line);">
+      <div id="map" style="width: 100%; height: 560px; background: var(--bg-panel-2);"></div>
+    </div>
+    <div class="mt-3 text-xs font-mono-data" style="color: var(--text-low);">
+      Node markers are plotted from asset locations containing recognized hub keywords (Jharkhand/Ranchi, Mumbai, Kolkata, Chennai, Hyderabad).
+    </div>
+  `;
+}
+
+function renderAbout() {
+  return `
+    <div class="max-w-3xl space-y-4">
+      <div class="rounded p-6" style="background: var(--bg-panel); border: 1px solid var(--line);">
+        <div class="text-sm font-medium mb-2" style="color: var(--amber);">Initiative Overview</div>
+        <p class="text-sm leading-relaxed" style="color: var(--text-mid);">
+          The National CPSE Material Standardization Initiative — "One Nation, One Material Code" —
+          establishes a single, harmonized coding scheme for materials held across India's Central
+          Public Sector Enterprises. It replaces fragmented, entity-specific part numbers with a
+          unified registry, reducing duplicate procurement, easing cross-CPSE stock transfers, and
+          giving national planners a live view of material availability across every operational node.
+        </p>
+      </div>
+      <div class="rounded p-6" style="background: var(--bg-panel); border: 1px solid var(--line);">
+        <div class="text-sm font-medium mb-2" style="color: var(--teal);">ISO-8000 Master Data Quality Assurance</div>
+        <p class="text-sm leading-relaxed" style="color: var(--text-mid);">
+          Every record entered into this registry is expected to meet ISO-8000 master-data quality
+          principles: accurate identification, complete categorization, and traceable authorship.
+          Entries are stamped as "Verified Standard" only once description, category, and location
+          fields are complete, and each record retains the identity of the user who logged it.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+function renderRestrictions() {
+  return `
+    <div class="max-w-2xl">
+      <div class="rounded p-6" style="background: rgba(217,142,63,0.08); border: 1px solid var(--amber-dim);">
+        <div class="text-sm font-medium mb-2" style="color: var(--amber);">Governance Notice</div>
+        <p class="text-sm leading-relaxed" style="color: var(--text-mid);">
+          Procurement actions exceeding <span class="font-mono-data" style="color: var(--text-hi);">₹50,00,000</span>
+          require dual-key branch authorization before a material can be marked eligible for high-value
+          purchase. A Branch Officer and a second authorized signatory must jointly approve the transaction
+          in the procurement ledger before funds are committed. This control exists to prevent single-point
+          authorization of major capital spend.
+        </p>
+      </div>
+    </div>
+  `;
+}
+
+function renderOverride() {
+  return `
+    <div class="max-w-2xl">
+      <div class="rounded p-6" style="background: rgba(193,80,61,0.08); border: 1px solid var(--rust-dim);">
+        <div class="text-sm font-medium mb-2" style="color: #E8A79A;">Danger Zone — Global Override</div>
+        <p class="text-sm leading-relaxed mb-4" style="color: var(--text-mid);">
+          This action permanently purges every material record from the national master database.
+          It cannot be undone. Use only to reset the registry for a fresh national rollout.
+        </p>
+        ${overrideConfirmStep === 0 ? `
+          <button id="override-btn" class="rounded px-4 py-2 font-medium" style="background: var(--rust); color: #2A0B06;">
+            Purge & Reset Master Records
+          </button>
+        ` : `
+          <div class="space-y-3">
+            <p class="text-sm font-medium" style="color: #E8A79A;">
+              Confirm: this will delete all ${state.materials.length ? '' : ''}inventory records permanently. Press again to confirm.
+            </p>
+            <div class="flex gap-3">
+              <button id="override-btn" class="rounded px-4 py-2 font-medium" style="background: var(--rust); color: #2A0B06;">
+                Confirm Purge
+              </button>
+              <button id="override-cancel-btn" class="rounded px-4 py-2 font-medium" style="background: var(--bg-panel-2); border: 1px solid var(--line-soft); color: var(--text-mid);">
+                Cancel
+              </button>
+            </div>
+          </div>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+// ----------------------------------------------------------------------------
+// Map integration (MapLibre GL)
+// ----------------------------------------------------------------------------
+
+const HUB_COORDS = {
+  'jharkhand': [85.3096, 23.6102],
+  'ranchi':    [85.3096, 23.6102],
+  'mumbai':    [72.8777, 19.0760],
+  'kolkata':   [88.3639, 22.5726],
+  'chennai':   [80.2707, 13.0827],
+  'hyderabad': [78.4867, 17.3850]
+};
+
+let mapInstance = null;
+
+function initMap() {
+  const container = document.getElementById('map');
+  if (!container) return;
+
+  mapInstance = new maplibregl.Map({
+    container: 'map',
+    style: {
+      version: 8,
+      sources: {
+        'raster-tiles': {
+          type: 'raster',
+          tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+          tileSize: 256,
+          attribution: '&copy; OpenStreetMap contributors'
+        }
+      },
+      layers: [{ id: 'osm', type: 'raster', source: 'raster-tiles' }]
+    },
+    center: [78.9629, 20.5937],
+    zoom: 4.5,
+    pitch: 45
+  });
+
+  mapInstance.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+  mapInstance.on('load', () => {
+    (state.materials || []).forEach(material => {
+      const loc = (material.location || '').toLowerCase();
+      const hubKey = Object.keys(HUB_COORDS).find(k => loc.includes(k));
+      if (!hubKey) return;
+
+      const el = document.createElement('div');
+      el.className = 'glow-marker';
+
+      const popup = new maplibregl.Popup({ offset: 14 }).setHTML(`
+        <div class="text-xs font-mono-data" style="color: var(--teal);">${escapeHtml(material.code)}</div>
+        <div class="text-sm mt-1">${escapeHtml(material.description)}</div>
+        <div class="text-xs mt-1" style="color: var(--text-mid);">Hub: ${escapeHtml(hubKey.charAt(0).toUpperCase() + hubKey.slice(1))}</div>
+      `);
+
+      new maplibregl.Marker({ element: el })
+        .setLngLat(HUB_COORDS[hubKey])
+        .setPopup(popup)
+        .addTo(mapInstance);
+    });
+  });
+}
+
+// ----------------------------------------------------------------------------
+// Utilities + event wiring
+// ----------------------------------------------------------------------------
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function attachHandlers() {
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) loginForm.addEventListener('submit', handleLogin);
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+
+  const themeBtn = document.getElementById('theme-toggle-btn');
+  if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+
+  document.querySelectorAll('[data-nav]').forEach(btn => {
+    btn.addEventListener('click', () => setTab(btn.getAttribute('data-nav')));
+  });
+
+  const newEntryForm = document.getElementById('new-entry-form');
+  if (newEntryForm) newEntryForm.addEventListener('submit', handleNewEntry);
+
+  const scanBtn = document.getElementById('scan-capture-btn');
+  if (scanBtn) scanBtn.addEventListener('click', handleScanCapture);
+
+  const overrideBtn = document.getElementById('override-btn');
+  if (overrideBtn) overrideBtn.addEventListener('click', handleOverride);
+
+  const overrideCancelBtn = document.getElementById('override-cancel-btn');
+  if (overrideCancelBtn) overrideCancelBtn.addEventListener('click', () => { overrideConfirmStep = 0; render(); });
+
+  if (state.isAuthenticated && state.activeTab === 'map_view') {
+    // Defer to ensure #map element exists in DOM
+    setTimeout(initMap, 0);
+  }
+
+  // --- Bulk ingestion dropzone ---
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  if (dropzone && fileInput) {
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => handleFileChosen(e.target.files[0]));
+
+    ['dragenter', 'dragover'].forEach(evt =>
+      dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('drag-active'); })
+    );
+    ['dragleave', 'drop'].forEach(evt =>
+      dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('drag-active'); })
+    );
+    dropzone.addEventListener('drop', (e) => {
+      const file = e.dataTransfer.files && e.dataTransfer.files[0];
+      if (file) handleFileChosen(file);
+    });
+  }
+
+  const runMatchingBtn = document.getElementById('run-matching-btn');
+  if (runMatchingBtn) runMatchingBtn.addEventListener('click', handleRunMatching);
+
+  const clearUploadBtn = document.getElementById('clear-upload-btn');
+  if (clearUploadBtn) clearUploadBtn.addEventListener('click', handleClearUpload);
+
+  const approveAllBtn = document.getElementById('approve-all-btn');
+  if (approveAllBtn) approveAllBtn.addEventListener('click', handleApproveAllHighConfidence);
+
+  document.querySelectorAll('[data-approve]').forEach(btn => {
+    btn.addEventListener('click', () => handleApproveMatch(btn.getAttribute('data-approve')));
+  });
+  document.querySelectorAll('[data-override]').forEach(btn => {
+    btn.addEventListener('click', () => handleOverrideMatch(btn.getAttribute('data-override')));
+  });
+}
+
+// ----------------------------------------------------------------------------
+// Boot
+// ----------------------------------------------------------------------------
+
+fetchState();
+</script>
+</body>
+</html>
