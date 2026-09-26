@@ -35,29 +35,29 @@ CPSE-Material-Harmonizer/
 
 ## 📦 Project Files
 
-# `public/index.html`
+#### `public/index.html`
 
 The main HTML file located inside the `public` directory.
 
 It provides the entry point for the project's public-facing web interface.
 
-# `server.js`
+#### `server.js`
 
 The main server-side JavaScript file included in the repository.
 
-# `generate_messy_data.js`
+#### `generate_messy_data.js`
 
 A JavaScript utility included in the project for generating project data.
 
-# `package.json`
+#### `package.json`
 
 The Node.js project configuration and package metadata.
 
-# `package-lock.json`
+#### `package-lock.json`
 
 The dependency lock file for the Node.js project.
 
-# `README.md`
+#### `README.md`
 
 The primary project documentation and repository overview.
 
@@ -185,7 +185,7 @@ This `README.md` serves as the primary documentation for the repository and prov
 
 ## 🚀 Installation & Usage
 
-# 1. Clone the Repository
+#### 1. Clone the Repository
 
 Clone the repository and move into the project directory:
 
@@ -194,7 +194,7 @@ git clone <repository-url>
 cd CPSE-Material-Harmonizer
 ```
 
-# 2. Install Dependencies
+#### 2. Install Dependencies
 
 Make sure Node.js and npm are installed, then run:
 
@@ -204,7 +204,7 @@ npm install
 
 This installs the dependencies specified in `package.json` and recorded in `package-lock.json`.
 
-# 3. Start the Application
+#### 3. Start the Application
 
 The project uses `server.js` as its server-side entry point.
 
@@ -216,7 +216,7 @@ npm start
 
 The exact command executed by `npm start` is defined in the `scripts` section of `package.json`.
 
-# 4. Use the Application
+#### 4. Use the Application
 
 Once the server is running, open the application in a web browser.
 
@@ -228,7 +228,7 @@ public/index.html
 
 If the project is configured to serve the application locally, use the local address displayed by the running server.
 
-# 5. Generate Project Data
+#### 5. Generate Project Data
 
 The repository also contains:
 
@@ -242,12 +242,12 @@ This utility can be run with Node.js when project data needs to be generated:
 node generate_messy_data.js
 ```
 
-# Quit
+#### Quit
 ```bash
 Ctrl + C
 ```
 
-# Quick Start
+#### Quick Start
 
 For a standard setup:
 
