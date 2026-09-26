@@ -1,0 +1,18 @@
+{
+  "name": "cpse-material-harmonizer",
+  "version": "1.0.0",
+  "description": "National CPSE Material Standardization Initiative - One Nation One Material Code",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^2.4.0",
+    "sqlite3": "^5.1.7",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
+  }
+}
