@@ -4,7 +4,6 @@
 ## Smart India Hackathon 2026 | PS ID: SIH26099
 
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Status: Production Ready](https://img.shields.io/badge/status-active-success.svg)]()
 
 An enterprise-grade, AI-powered catalog harmonization and material deduplication platform engineered to eradicate fragmented procurement data, duplicated material codes, and bloated inventory across Central Public Sector Enterprises (CPSEs).
@@ -357,6 +356,3 @@ By identifying semantically and functionally equivalent materials despite differ
 
 ---
 
-## 📄 License
-
-This project is released under the **MIT License**.
