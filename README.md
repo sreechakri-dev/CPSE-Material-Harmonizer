@@ -1,10 +1,7 @@
 [README.md](https://github.com/user-attachments/files/32689512/README.md)
-# AI-Driven National Unified Material Master (NUMM) Framework
+# AI-Driven Standardization and Harmonization of Material Codes Across CPSEs
 
-## Smart India Hackathon 2026 | PS ID: SIH26099
-
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Status: Production Ready](https://img.shields.io/badge/status-active-success.svg)]()
+## PS ID: SIH26099
 
 An enterprise-grade, AI-powered catalog harmonization and material deduplication platform engineered to eradicate fragmented procurement data, duplicated material codes, and bloated inventory across Central Public Sector Enterprises (CPSEs).
 
@@ -190,6 +187,11 @@ Raw Procurement Data
 | REQ-9015 | `Copper Cable 3C x 400 sq mm armored` | `CABLE, POWER, 3-CORE, 400 SQ MM, CU, ARMOURED` | 99.2% | 10.8 | 15.1 | Harmonized |
 
 ---
+
+![Architecture Diagram](<img width="1917" height="1078" alt="Screenshot 2026-09-27 024227" src="https://github.com/user-attachments/assets/70a84c41-1714-4adf-8760-431ec63b351e" />
+)
+
+
 
 ## ⚙️ System Specifications
 
