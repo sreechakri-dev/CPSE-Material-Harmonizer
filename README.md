@@ -1,3 +1,4 @@
+
 [README.md](https://github.com/user-attachments/files/32689512/README.md)
 # AI-Driven Standardization and Harmonization of Material Codes Across CPSEs
 
@@ -187,10 +188,10 @@ Raw Procurement Data
 | REQ-9015 | `Copper Cable 3C x 400 sq mm armored` | `CABLE, POWER, 3-CORE, 400 SQ MM, CU, ARMOURED` | 99.2% | 10.8 | 15.1 | Harmonized |
 
 ---
+# Interface
+<img width="1917" height="1078" alt="2f8c061f-39f3-4ca4-8259-b983751793ea" src="https://github.com/user-attachments/assets/bc4f8796-22e8-4eb0-b5e8-a4bb3785a2ed" />
 
-![Architecture Diagram](<img width="1917" height="1078" alt="Screenshot 2026-09-27 024227" src="https://github.com/user-attachments/assets/70a84c41-1714-4adf-8760-431ec63b351e" />
-)
-
+<img width="1917" height="1078" alt="e8021e57-7718-41c8-962a-46ed01279bbf" src="https://github.com/user-attachments/assets/c28308e5-2bde-4245-82e0-9b1e026310a7" />
 
 
 ## ⚙️ System Specifications
