@@ -1,361 +1,256 @@
+[README.md](https://github.com/user-attachments/files/32689882/README.md)
+# CPSE Material Harmonizer
 
-[README.md](https://github.com/user-attachments/files/32689512/README.md)
-# AI-Driven Standardization and Harmonization of Material Codes Across CPSEs
+## National CPSE Material Standardization Initiative
 
-## PS ID: SIH26099
-
-An enterprise-grade, AI-powered catalog harmonization and material deduplication platform engineered to eradicate fragmented procurement data, duplicated material codes, and bloated inventory across Central Public Sector Enterprises (CPSEs).
+A project repository containing the application's public interface, server-side JavaScript, data-generation utility, Node.js package configuration, and project documentation.
 
 ---
 
 ## Table of Contents
 
-- [Core Architecture](#-core-architecture)
-- [Directory Structure](#-directory-structure)
-- [Data Harmonization Pipeline](#-data-harmonization-pipeline)
-- [Harmonization Telemetry](#-harmonization-telemetry--matching-log)
-- [System Specifications](#-system-specifications)
+- [Repository Structure](#-repository-structure)
+- [Project Files](#-project-files)
 - [Getting Started](#-getting-started)
-- [Controls & Usage](#-controls--interface-usage)
-- [Key Capabilities](#-key-capabilities)
-- [Technology Stack](#-technology-stack)
-- [Project Objective](#-project-objective)
-- [License](#-license)
+- [Development](#-development)
+- [Repository Status](#-repository-status)
 
 ---
 
-## 🏛️ Core Architecture
-
-The system decouples **text normalization**, **semantic embedding**, and **explainable cross-matching** to resolve naming discrepancies across siloed procurement databases.
-
-### Text Normalization Engine — `normalizer.py`
-
-Executes:
-
-- Regex-based token cleaning
-- Standard unit conversion
-- Abbreviation expansion
-- Noise filtering
-- Attribute extraction
-- Description standardization
-
-### Semantic Embedding & Vector Search — `embedder.py`
-
-Leverages fine-tuned transformer models to map industrial material attributes into dense vector spaces for rapid similarity lookups.
-
-Key capabilities include:
-
-- Dense semantic embeddings
-- 768-dimensional vectors
-- FAISS-based similarity search
-- HNSW indexing support
-- Fast candidate retrieval
-
-### Cross-Encoder Reranker — `matcher.py`
-
-Applies deep cross-attention layers to score candidate matches and identify functionally equivalent material codes across disparate databases.
-
-The matcher combines:
-
-- Semantic similarity
-- Material attributes
-- Dimensional specifications
-- Grade and material information
-- Functional equivalence
-
-### Explainability Module — `explainer.py`
-
-Deconstructs the AI decision process by highlighting matching attributes and confidence contribution scores.
-
-The module helps users understand:
-
-- Which attributes matched
-- Which attributes differed
-- Why two materials were considered equivalent
-- Confidence associated with the match
-
-### Unified Dashboard UI — `app.py` & `dashboard/`
-
-Coordinates:
-
-- Catalog upload workflows
-- Harmonization analytics
-- Material matching inspection
-- Deduplication statistics
-- Collaborative demand-pooling insights
-- Master catalog export
-
----
-
-## 📁 Directory Structure
+## 📁 Repository Structure
 
 ```text
-SIH26099/
-├── backend/
-│   ├── src/
-│   │   ├── main.py            # FastAPI Application Server & API Gateway
-│   │   ├── normalizer.py      # Text Cleaning & Standardization Engine
-│   │   ├── embedder.py        # Dense Vector Generation & FAISS Indexing
-│   │   ├── matcher.py         # Cross-Encoder Reranking & Similarity Core
-│   │   ├── explainer.py       # Explainable AI Attribute Match Breakdown
-│   │   └── database.py        # PostgreSQL / MongoDB Connection Handlers
-│   │
-│   └── models/
-│       └── sbert_material.onnx # Quantized Semantic Matcher Weights
+CPSE-Material-Harmonizer/
+├── public/
+│   └── index.html
 │
-├── frontend/
-│   ├── src/
-│   │   ├── components/        # Reusable UI Blocks & Data Tables
-│   │   ├── pages/             # Harmonization & Analytics Views
-│   │   └── App.jsx            # Root Application Layout
-│   │
-│   └── package.json            # Frontend Dependencies
-│
-├── datasets/
-│   └── sample_catalog.csv      # Sample Unstructured Procurement Records
-│
-├── docs/
-│   ├── architecture.md         # Deep-Dive System Design Documentation
-│   └── taxonomy.md             # Universal Material Classification Standard
-│
-├── requirements.txt            # Python Pipeline Dependencies
-└── README.md                   # Project Overview
+├── README.md
+├── generate_messy_data.js
+├── package-lock.json
+├── package.json
+└── server.js
 ```
 
 ---
 
-## 🔄 Data Harmonization Pipeline
+## 📦 Project Files
 
-```text
-Raw Procurement Data
-        │
-        ▼
-┌───────────────────────┐
-│  Input Catalog Upload │
-│   CSV / Excel / JSON  │
-└───────────┬───────────┘
-            │
-            ▼
-┌───────────────────────────┐
-│  Text Normalization       │
-│  • Cleaning               │
-│  • Unit Conversion        │
-│  • Abbreviation Expansion │
-│  • Attribute Extraction   │
-└────────────┬──────────────┘
-             │
-             ▼
-┌───────────────────────────┐
-│ Semantic Embedding        │
-│ 768-D Dense Vectors       │
-└────────────┬──────────────┘
-             │
-             ▼
-┌───────────────────────────┐
-│ Vector Candidate Search   │
-│ FAISS / HNSW              │
-└────────────┬──────────────┘
-             │
-             ▼
-┌───────────────────────────┐
-│ Cross-Encoder Reranking   │
-│ Semantic + Attribute Match│
-└────────────┬──────────────┘
-             │
-             ▼
-┌───────────────────────────┐
-│ Explainable Match Engine  │
-│ Confidence + Attributes   │
-└────────────┬──────────────┘
-             │
-             ▼
-┌───────────────────────────┐
-│ Unified Material Master   │
-│ Deduplicated Catalog      │
-└───────────────────────────┘
-```
+### `public/index.html`
+
+The main HTML file located inside the `public` directory.
+
+It provides the entry point for the project's public-facing web interface.
+
+### `server.js`
+
+The main server-side JavaScript file included in the repository.
+
+### `generate_messy_data.js`
+
+A JavaScript utility included in the project for generating project data.
+
+### `package.json`
+
+The Node.js project configuration and package metadata.
+
+### `package-lock.json`
+
+The dependency lock file for the Node.js project.
+
+### `README.md`
+
+The primary project documentation and repository overview.
 
 ---
 
-## 📊 Harmonization Telemetry & Matching Log
-
-| Request ID | Raw Input String | Standardized Catalog Match | Confidence Score (%) | Semantic Vector Latency (ms) | Cross-Encoder Rerank (ms) | Status |
-|---|---|---|---:|---:|---:|---|
-| REQ-9011 | `SS 304 Seamless Pipe 2inch Sch40` | `PIPE, STAINLESS STEEL, 304, 2 IN, SCH 40` | 98.4% | 12.4 | 18.2 | Harmonized |
-| REQ-9012 | `H.T. Bolt M16x50 Grade 8.8 Galvanized` | `BOLT, HEX HEAD, M16 X 50, GR 8.8, HDG` | 97.1% | 11.9 | 17.5 | Harmonized |
-| REQ-9013 | `Gate Valve CI 150# Flanged 4 inch` | `VALVE, GATE, CAST IRON, 150 LB, FLG, 4 IN` | 95.8% | 13.1 | 19.4 | Harmonized |
-| REQ-9014 | `Gasket Spiral Wound 300# 6in RF` | `GASKET, SPIRAL WOUND, 300 LB, 6 IN, RF` | 96.5% | 12.0 | 16.8 | Harmonized |
-| REQ-9015 | `Copper Cable 3C x 400 sq mm armored` | `CABLE, POWER, 3-CORE, 400 SQ MM, CU, ARMOURED` | 99.2% | 10.8 | 15.1 | Harmonized |
-
----
 # Interface
 <img width="1917" height="1078" alt="2f8c061f-39f3-4ca4-8259-b983751793ea" src="https://github.com/user-attachments/assets/bc4f8796-22e8-4eb0-b5e8-a4bb3785a2ed" />
 
 <img width="1917" height="1078" alt="e8021e57-7718-41c8-962a-46ed01279bbf" src="https://github.com/user-attachments/assets/c28308e5-2bde-4245-82e0-9b1e026310a7" />
 
-
-## ⚙️ System Specifications
-
-| Parameter | Value |
-|---|---|
-| Target Throughput | 5,000 records/sec |
-| Embedding Dimension | 768-d dense vectors |
-| Indexing Structure | FAISS Flat / HNSW Index |
-| Accuracy Threshold | ≥ 95% match precision |
-| API Framework | FastAPI + Uvicorn Async |
-| Frontend Stack | React, Vite, Tailwind CSS, Recharts |
-| Database Backend | PostgreSQL with pgvector |
-
----
-
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-Ensure the following software is installed:
+This repository contains a Node.js project configuration through:
 
-- Python 3.10+
-- Node.js 18+
-- PostgreSQL
-- PostgreSQL `pgvector` extension
+```text
+package.json
+package-lock.json
+```
+
+Install Node.js before running the project.
 
 ### Installation
 
-#### 1. Clone the Repository
+Clone the repository and enter the project directory:
 
 ```bash
 git clone <repository-url>
-cd SIH26099
+cd CPSE-Material-Harmonizer
 ```
 
-#### 2. Install Backend Dependencies
+Install the project's dependencies:
 
 ```bash
-pip install -r requirements.txt
-```
-
-#### 3. Install Frontend Dependencies
-
-```bash
-cd frontend
 npm install
 ```
 
 ---
 
-## ▶️ Running the Application
+## ▶️ Running the Project
 
-### Start the FastAPI Backend
-
-From the project root:
-
-```bash
-cd backend/src
-uvicorn main:app --reload --port 8000
-```
-
-Backend API:
+The repository contains the main server file:
 
 ```text
-http://localhost:8000
+server.js
 ```
 
-### Start the React Frontend
+along with the Node.js project configuration:
 
-Open another terminal:
+```text
+package.json
+```
+
+The available start command is defined inside the `scripts` section of `package.json`.
+
+Run the appropriate npm script from the project root.
+
+---
+
+## 🛠️ Project Structure
+
+The application follows a simple Node.js project layout:
+
+```text
+                    CPSE Material Harmonizer
+                              │
+             ┌────────────────┼────────────────┐
+             │                │                │
+             ▼                ▼                ▼
+         public/           server.js       package.json
+             │
+             ▼
+        index.html
+
+             ┌────────────────┴────────────────┐
+             │                                 │
+             ▼                                 ▼
+ generate_messy_data.js                 package-lock.json
+```
+
+### Public Interface
+
+```text
+public/
+└── index.html
+```
+
+### Application Files
+
+```text
+server.js
+generate_messy_data.js
+```
+
+### Node.js Configuration
+
+```text
+package.json
+package-lock.json
+```
+
+---
+
+## 📌 Repository Status
+
+The repository currently contains:
+
+- `public/index.html`
+- `README.md`
+- `generate_messy_data.js`
+- `package-lock.json`
+- `package.json`
+- `server.js`
+
+The repository is currently organized around the `main` branch.
+
+---
+
+## 📄 Project Documentation
+
+This `README.md` serves as the primary documentation for the repository and provides an overview of its currently visible project structure and files.
+
+---
+
+## 🚀 Installation & Usage
+
+### 1. Clone the Repository
+
+Clone the repository and move into the project directory:
 
 ```bash
-cd frontend
-npm run dev
+git clone <repository-url>
+cd CPSE-Material-Harmonizer
 ```
 
----
+### 2. Install Dependencies
 
-## 🎮 Controls & Interface Usage
+Make sure Node.js and npm are installed, then run:
 
-### `Upload Catalog`
+```bash
+npm install
+```
 
-Drag and drop messy procurement spreadsheets or structured files into the normalization portal.
+This installs the dependencies specified in `package.json` and recorded in `package-lock.json`.
 
-Supported input formats:
+### 3. Start the Application
 
-- CSV
-- Excel
-- JSON
+The project uses `server.js` as its server-side entry point.
 
-Uploaded records are passed through the normalization and harmonization pipeline.
+Run the project's configured start script:
 
-### `Inspect Match`
+```bash
+npm start
+```
 
-Click any harmonized record to open the explainability interface.
+The exact command executed by `npm start` is defined in the `scripts` section of `package.json`.
 
-The interface displays:
+### 4. Use the Application
 
-- Original material description
-- Standardized material description
-- Matching attributes
-- Attribute-level contribution
-- Semantic similarity
-- Cross-encoder confidence
-- Final harmonization decision
+Once the server is running, open the application in a web browser.
 
-### `Export Master`
+The public interface is provided by:
 
-Download the resulting deduplicated **National Unified Material Master** catalog in structured formats such as:
+```text
+public/index.html
+```
 
-- CSV
-- JSON
+If the project is configured to serve the application locally, use the local address displayed by the running server.
 
----
+### 5. Generate Project Data
 
-## 🎯 Key Capabilities
+The repository also contains:
 
-- AI-powered material deduplication
-- Cross-enterprise catalog harmonization
-- Semantic similarity matching
-- Attribute-aware material matching
-- Vector-based candidate retrieval
-- Cross-encoder reranking
-- Explainable AI decisions
-- Standardized material taxonomy
-- High-throughput processing
-- Centralized unified material master
-- Procurement data analytics
-- Demand-pooling support
-- Structured catalog export
+```text
+generate_messy_data.js
+```
 
----
+This utility can be run with Node.js when project data needs to be generated:
 
-## 🏗️ Technology Stack
+```bash
+node generate_messy_data.js
+```
 
-| Layer | Technology |
-|---|---|
-| Backend | Python, FastAPI, Uvicorn |
-| AI / NLP | Transformer / SBERT-based Models |
-| Vector Search | FAISS / HNSW |
-| Model Runtime | ONNX Runtime |
-| Database | PostgreSQL + pgvector |
-| Frontend | React + Vite |
-| Styling | Tailwind CSS |
-| Visualization | Recharts |
-| Data Processing | Pandas |
-| API Architecture | REST |
+### Quick Start
 
----
+For a standard setup:
 
-## 📌 Project Objective
+```bash
+git clone <repository-url>
+cd CPSE-Material-Harmonizer
+npm install
+npm start
+```
 
-The **National Unified Material Master (NUMM)** framework aims to create a standardized, AI-assisted material intelligence layer capable of harmonizing fragmented procurement catalogs across organizations.
-
-By identifying semantically and functionally equivalent materials despite differences in naming conventions, abbreviations, units, and descriptions, the platform can support:
-
-- Material master standardization
-- Duplicate-code identification
-- Inventory rationalization
-- Cross-organization catalog interoperability
-- Procurement consolidation
-- Demand aggregation
-- Data-driven procurement analytics
-
----
-
+Then access the application's web interface through the address provided by the running server.
