@@ -744,3 +744,16 @@ app.post('/api/reject-match', (req, res) => {
 app.listen(PORT, () => {
     console.log(`CPSE Material Harmonizer server running at http://localhost:${PORT}`);
 });
+
+/*
+------------------------------------------------------------
+Copyright © 2026 Sree. All Rights Reserved.
+Original Project: CPSE-Material-Harmonizer
+SIH Problem Statement: SIH26099
+Developed by: sreechakri-dev
+
+Private use permitted. Redistribution and public publication
+require prior written permission.
+See LICENSE.md for complete terms.
+------------------------------------------------------------
+*/
