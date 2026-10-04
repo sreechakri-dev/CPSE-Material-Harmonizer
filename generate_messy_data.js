@@ -65,3 +65,16 @@ XLSX.writeFile(wb, fileName);
 
 console.log(`✅ Generated "${fileName}" with ${rows.length} messy rows successfully!`);
 console.log(`-> You can now upload this file directly into your Tr2 Bulk Upload module.`);
+
+/*
+------------------------------------------------------------
+Copyright © 2026 Sree. All Rights Reserved.
+Original Project: CPSE-Material-Harmonizer
+SIH Problem Statement: SIH26099
+Developed by: sreechakri-dev
+
+Private use permitted. Redistribution and public publication
+require prior written permission.
+See LICENSE.md for complete terms.
+------------------------------------------------------------
+*/
