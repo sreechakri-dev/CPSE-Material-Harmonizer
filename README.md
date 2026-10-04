@@ -259,3 +259,13 @@ npm start
 ```
 
 Then access the application's web interface through the address provided by the running server.
+
+---
+
+**© 2026 Sree — All Rights Reserved.**  
+*CPSE-Material-Harmonizer · SIH Problem Statement SIH26099*  
+*Developed by [sreechakri-dev](https://github.com/sreechakri-dev).*  
+*Private use permitted. Redistribution and public publication require prior written permission.*  
+See [LICENSE.md](LICENSE.md).
+
+---
